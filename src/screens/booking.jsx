@@ -8,7 +8,7 @@ function Booking() {
 
   const timeSlots = [
     { id: 1, time: '12:00', available: 2, price: 999, blocked: [3, 4] },
-    { id: 2, time: '13:00', available: 4, price: 999, blocked: [] },
+    { id: 2, time: '13:00', available: 4, price: 999, blocked: [1] },
     { id: 3, time: '14:00', available: 1, price: 999, blocked: [2, 3, 4] },
     { id: 4, time: '15:00', available: 3, price: 999, blocked: [4] },
     { id: 5, time: '16:00', available: 0, price: 999, blocked: [1, 2, 3, 4] },
