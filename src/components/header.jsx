@@ -1,12 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo-black.png';
+import logo from '../assets/logo-plain.png';
 
 function Header() {
   const navigate = useNavigate();
 
   return (
-    <header className="flex justify-between items-center p-4 bg-red-700">
+    <header className="flex justify-between items-center p-4 bg-gray-900">
       <img 
         src={logo} 
         alt="Oversteer Lab Logo" 

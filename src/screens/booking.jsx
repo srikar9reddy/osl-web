@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { FaCalendarAlt, FaClock, FaGamepad, FaLock, FaTimes } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaCalendarAlt, FaClock, FaGamepad, FaLock, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Header from '../components/header';
+import { useNavigate } from 'react-router-dom';
 
 function Booking() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSlots, setSelectedSlots] = useState([]);
+  const [weekStart, setWeekStart] = useState(new Date());
+  const navigate = useNavigate();
 
   const timeSlots = [
     { id: 1, time: '12:00', available: 2, price: 999, blocked: [3, 4] },
@@ -18,14 +21,52 @@ function Booking() {
     { id: 9, time: '20:00', available: 4, price: 999, blocked: [] },
   ];
 
-  const handleDateChange = (e) => {
-    const selectedDate = new Date(e.target.value);
+  const handleDateChange = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    if (selectedDate >= today) {
-      setSelectedDate(selectedDate);
+    if (date >= today) {
+      setSelectedDate(date);
     }
+  };
+
+  const handleWeekChange = (increment) => {
+    const newWeekStart = new Date(weekStart);
+    newWeekStart.setDate(newWeekStart.getDate() + (increment * 7));
+    setWeekStart(newWeekStart);
+  };
+
+  const renderWeek = () => {
+    const week = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(date.getDate() + i);
+      const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+      const isPast = date < today;
+
+      week.push(
+        <button
+          key={i}
+          onClick={() => handleDateChange(date)}
+          disabled={isPast}
+          className={`p-2 m-1 w-12 h-12 rounded-full flex flex-col items-center justify-center ${
+            isSelected
+              ? 'bg-red-600 text-white'
+              : isPast
+              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-800 text-white hover:bg-red-900'
+          }`}
+        >
+          <span className="text-xs">{date.toLocaleString('default', { weekday: 'short' })}</span>
+          <span className="text-sm font-bold">{date.getDate()}</span>
+        </button>
+      );
+    }
+
+    return week;
   };
 
   const handleSlotSelection = (slotId, simNum) => {
@@ -57,6 +98,17 @@ function Booking() {
     setSelectedSlots(prevSlots => prevSlots.filter(slot => slot.id !== slotId));
   };
 
+  const handleConfirmBooking = () => {
+    const bookingDetails = {
+      selectedDate,
+      selectedSlots: selectedSlots.map(slot => ({
+        ...slot,
+        time: timeSlots.find(s => s.id === slot.id).time
+      }))
+    };
+    navigate('/confirm-booking', { state: { bookingDetails } });
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       <Header />
@@ -67,13 +119,22 @@ function Booking() {
             <FaCalendarAlt className="mr-2 text-red-500" />
             Select Date:
           </label>
-          <input
-            type="date"
-            value={selectedDate.toISOString().split('T')[0]}
-            onChange={handleDateChange}
-            min={new Date().toISOString().split('T')[0]}
-            className="bg-gray-800 text-white p-2 rounded w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
+          <div className="bg-gray-800 p-4 rounded-lg">
+            <div className="flex justify-between items-center mb-4">
+              <button onClick={() => handleWeekChange(-1)} className="text-red-500">
+                <FaChevronLeft />
+              </button>
+              <span className="text-lg font-bold">
+                {weekStart.toLocaleDateString()} - {new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+              </span>
+              <button onClick={() => handleWeekChange(1)} className="text-red-500">
+                <FaChevronRight />
+              </button>
+            </div>
+            <div className="flex justify-between">
+              {renderWeek()}
+            </div>
+          </div>
         </div>
         <div>
           <label className="flex items-center mb-2">
@@ -160,7 +221,10 @@ function Booking() {
               const timeSlot = timeSlots.find(s => s.id === slot.id);
               return total + (timeSlot.price * slot.sims.length);
             }, 0)}</p>
-            <button className="mt-4 py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-300">
+            <button 
+              className="mt-4 py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-300"
+              onClick={handleConfirmBooking}
+            >
               Confirm Booking
             </button>
           </div>
